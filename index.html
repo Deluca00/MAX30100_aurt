@@ -41,6 +41,7 @@
 <body>
     <h1>Đọc dữ liệu từ Firebase Realtime Database</h1>
     <div id="data">Đang tải dữ liệu...</div>
+    <div id="iconStatus" style="font-size: 100px; text-align: center;"></div> <!-- Phần hiển thị icon -->
     <div id="chartContainer">
         <canvas id="myChart"></canvas>
     </div>
@@ -64,16 +65,17 @@
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
         const database = getDatabase(app);
-        
+
         const dataDiv = document.getElementById('data');
+        const iconStatus = document.getElementById('iconStatus');
         const ctx = document.getElementById('myChart').getContext('2d');
         let heartRateData = [];
         let spo2Data = [];
 
         const myChart = new Chart(ctx, {
-            type: 'line', // Loại biểu đồ
+            type: 'line',
             data: {
-                labels: [], // Nhãn cho các điểm dữ liệu
+                labels: [],
                 datasets: [{
                     label: 'Heart Rate (BPM)',
                     borderColor: 'rgba(255, 99, 132, 1)',
@@ -108,20 +110,28 @@
             }
         });
 
-        const dataRef = ref(database, '/'); // Đường dẫn đến dữ liệu
+        const dataRef = ref(database, '/');
         onValue(dataRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                // Cập nhật dữ liệu
                 heartRateData.push(data.heartRate);
                 spo2Data.push(data.spo2);
                 const currentTime = new Date().toLocaleTimeString();
 
-                // Cập nhật nhãn với thời gian
                 myChart.data.labels.push(currentTime);
                 myChart.update();
 
-                // Hiển thị dữ liệu trong div
+                // Cập nhật icon trạng thái dựa trên dữ liệu
+                if (data.spo2 < 88) {
+                    iconStatus.innerHTML = '⚠️😱'; // Nguy hiểm
+                } else if (data.spo2 >= 92 && data.spo2 <= 95 && data.heartRate <= 120) {
+                    iconStatus.innerHTML = '😐'; // Cảnh báo
+                } else if (data.spo2 >= 96 && data.heartRate >= 65 && data.heartRate <= 105) {
+                    iconStatus.innerHTML = '😊'; // Bình thường
+                } else {
+                    iconStatus.innerHTML = ' '; // Không rõ ràng
+                }
+
                 dataDiv.innerHTML = `
                     <strong>Dữ liệu từ Firebase:</strong><br>
                     Heart Rate: ${data.heartRate} BPM<br>
@@ -136,4 +146,5 @@
         });
     </script>
 </body>
+
 </html>
