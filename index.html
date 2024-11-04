@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Web App</title>
+    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        #data {
+            white-space: pre-wrap;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+        }
+        #chartContainer {
+            position: relative;
+            margin: auto;
+            width: 80%;
+            max-width: 600px;
+        }
+        canvas {
+            background-color: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>Đọc dữ liệu từ Firebase Realtime Database</h1>
+    <div id="data">Đang tải dữ liệu...</div>
+    <div id="chartContainer">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKcc4mKJDVDqvRAvJx9qpOsCs_XCCKj7U",
+            authDomain: "max30100-heart-oxy.firebaseapp.com",
+            databaseURL: "https://max30100-heart-oxy-default-rtdb.firebaseio.com",
+            projectId: "max30100-heart-oxy",
+            storageBucket: "max30100-heart-oxy.firebasestorage.app",
+            messagingSenderId: "310704686741",
+            appId: "1:310704686741:web:b16f253684f8b7932cfd9c",
+            measurementId: "G-HEK70PCH77"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const database = getDatabase(app);
+        
+        const dataDiv = document.getElementById('data');
+        const ctx = document.getElementById('myChart').getContext('2d');
+        let heartRateData = [];
+        let spo2Data = [];
+
+        const myChart = new Chart(ctx, {
+            type: 'line', // Loại biểu đồ
+            data: {
+                labels: [], // Nhãn cho các điểm dữ liệu
+                datasets: [{
+                    label: 'Heart Rate (BPM)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    data: heartRateData,
+                    fill: true
+                }, {
+                    label: 'SpO2 (%)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    data: spo2Data,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Giá trị'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Thời gian'
+                        }
+                    }
+                }
+            }
+        });
+
+        const dataRef = ref(database, '/'); // Đường dẫn đến dữ liệu
+        onValue(dataRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                // Cập nhật dữ liệu
+                heartRateData.push(data.heartRate);
+                spo2Data.push(data.spo2);
+                const currentTime = new Date().toLocaleTimeString();
+
+                // Cập nhật nhãn với thời gian
+                myChart.data.labels.push(currentTime);
+                myChart.update();
+
+                // Hiển thị dữ liệu trong div
+                dataDiv.innerHTML = `
+                    <strong>Dữ liệu từ Firebase:</strong><br>
+                    Heart Rate: ${data.heartRate} BPM<br>
+                    SpO2: ${data.spo2}%
+                `;
+            } else {
+                dataDiv.innerHTML = "Không có dữ liệu";
+            }
+        }, (error) => {
+            console.error("Error reading data: ", error);
+            dataDiv.innerHTML = "Lỗi khi đọc dữ liệu: " + error;
+        });
+    </script>
+</body>
+</html>
