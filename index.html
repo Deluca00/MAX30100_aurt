@@ -7,23 +7,47 @@
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f9f9f9;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f7f9fc;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1, h2 {
+            margin: 10px 0;
+            font-weight: 600;
+            text-align: center;
         }
         h1 {
-            text-align: center;
-            color: #333;
+            color: #2d3436;
+        }
+        h2 {
+            color: #d63031;
         }
         #data {
-            white-space: pre-wrap;
             background-color: #ffffff;
             padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
             margin: 20px 0;
+            text-align: center;
+            font-size: 1.1em;
+            max-width: 600px;
+            width: 100%;
+        }
+        #iconStatus {
+            font-size: 80px;
+            margin: 20px 0;
+            transition: transform 0.3s;
+        }
+        #iconStatus:hover {
+            transform: scale(1.1);
         }
         #chartContainer {
             position: relative;
@@ -33,15 +57,24 @@
         }
         canvas {
             background-color: #ffffff;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+        @media (max-width: 600px) {
+            #iconStatus {
+                font-size: 60px;
+            }
+            #data {
+                font-size: 1em;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Đọc dữ liệu từ Firebase Realtime Database</h1>
+    <h1>Firebase Realtime Database</h1>
+    <h2>MAX30100 & ESP32-WROOM</h2>
     <div id="data">Đang tải dữ liệu...</div>
-    <div id="iconStatus" style="font-size: 100px; text-align: center;"></div> <!-- Phần hiển thị icon -->
+    <div id="iconStatus"></div>
     <div id="chartContainer">
         <canvas id="myChart"></canvas>
     </div>
@@ -121,21 +154,20 @@
                 myChart.data.labels.push(currentTime);
                 myChart.update();
 
-                // Cập nhật icon trạng thái dựa trên dữ liệu
                 if (data.spo2 < 88) {
-                    iconStatus.innerHTML = '⚠️😱'; // Nguy hiểm
+                    iconStatus.innerHTML = '⚠️😱';
                 } else if (data.spo2 >= 92 && data.spo2 <= 95 && data.heartRate <= 120) {
-                    iconStatus.innerHTML = '😐'; // Cảnh báo
+                    iconStatus.innerHTML = '😐';
                 } else if (data.spo2 >= 96 && data.heartRate >= 65 && data.heartRate <= 105) {
-                    iconStatus.innerHTML = '😊'; // Bình thường
+                    iconStatus.innerHTML = '😊';
                 } else {
-                    iconStatus.innerHTML = '🤔'; // Không rõ ràng
+                    iconStatus.innerHTML = '🤔';
                 }
 
                 dataDiv.innerHTML = `
                     <strong>Dữ liệu từ Firebase:</strong><br>
-                    Heart Rate: ${data.heartRate} BPM<br>
-                    SpO2: ${data.spo2}%
+                    Heart Rate: <span style="color: #e74c3c; font-weight: 600;">${data.heartRate} BPM</span><br>
+                    SpO2: <span style="color: #3498db; font-weight: 600;">${data.spo2}%</span>
                 `;
             } else {
                 dataDiv.innerHTML = "Không có dữ liệu";
@@ -146,5 +178,4 @@
         });
     </script>
 </body>
-
 </html>
